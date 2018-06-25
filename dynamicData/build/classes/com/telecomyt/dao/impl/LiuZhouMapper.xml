@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.telecomyt.dao.ILiuZhouDao">
+	
+	<select id="getUserList" resultMap="userList">
+		select u.id,u.alias,ui.phone,o.code
+		from user u 
+		left join organization o on u.orga_name = o.name
+		left join user_info ui on u.id_card = ui.id_card
+	</select>
+	<resultMap type="User" id="userList">
+		<id property="id" column="id"/>
+		<result property="alias" column="alias"/>
+		<result property="idCard" column="id_card"/>
+		<result property="orgaCode" column="code"/>
+		<result property="phone" column="phone"/>
+	</resultMap>
+	
+	<update id="update" parameterType="User">
+		update user
+		<set>
+			orga_code = #{orgaCode},phone=#{phone}
+		</set>
+		where id = #{id}
+	</update>
+	
+	<!-- 查询二级标题的集合 -->	
+	<select id="getSendTitle" resultMap="secondTitleList">
+		select class,subclass_type
+		from lz_police_total
+		where class not in("会议通知","站内公告","广西公安局_公安要闻")
+		group by class
+	</select>
+	<resultMap type="SecondTitle" id="secondTitleList">
+		<result property="name" column="class"/>
+		<result property="subName" column="subclass_type"/>
+	</resultMap>
+	
+	<!-- 三级标题集合 -->
+	<select id="getThirdTitle" resultMap="thirdTitleList">
+		select distinct class,subclass_type
+		from lz_police_total
+		where class = #{secondName}
+		group by subclass_type
+	</select>
+	<resultMap type="ThirdTitle" id="thirdTitleList">
+		<result property="superName" column="class"/>
+		<result property="name" column="subclass_type"/>
+	</resultMap>
+	
+	<!-- 新闻列表 -->
+	<select id="getNewList" resultMap="newList">
+		select distinct id,list_title,article_secondtitle,class,list_time,article_title,article_picture_name,
+		     article_picture_value,article_detail,article_attachment_name,article_attachment_value,subclass_type
+		from lz_police_total
+		where class = #{name} or subclass_type = #{name}
+		group by list_title
+		order by list_time DESC
+		limit #{startIndex},#{pageCount}
+	</select>
+	<resultMap type="Data" id="newList">
+		<id property="id" column="id"/>
+		<result property="listTitle" column="list_title"/>
+		<result property="articleSecondTitle" column="article_secondtitle"/>
+		<result property="_class" column="class"/>
+		<result property="subclassType" column="subclass_type"/>
+		<result property="listTime" column="list_time"/>
+		<result property="articleTitle" column="article_title"/>
+		<result property="articlePictureName" column="article_picture_name"/>
+		<result property="articleDetail" column="article_detail"/>
+		<result property="articlePictureValue" column="article_picture_value"/>
+		<result property="articleAttachmentName" column="article_attachment_name"/>
+		<result property="articleAttachmentValue" column="article_attachment_value"/>
+	</resultMap>
+	
+	<!-- 查询新闻详情 -->
+	<select id="getNewInfo" resultMap="newInfoList">
+		select id,list_title,article_secondtitle,class,list_time,article_title,article_picture_name,
+		     article_picture_value,article_detail,article_attachment_name,article_attachment_value
+		from lz_police_total
+		where id = #{newId}
+	</select>
+	<resultMap type="NewInfo" id="newInfoList">
+		<id property="id" column="id"/>
+		<result property="listTitle" column="list_title"/>
+		<result property="articleSecondTitle" column="article_secondtitle"/>
+		<result property="_class" column="class"/>
+		<result property="listTime" column="list_time"/>
+		<result property="articleTitle" column="article_title"/>
+		<result property="articlePictureName" column="article_picture_name"/>
+		<result property="articleDetail" column="article_detail"/>
+		<result property="articlePictureValue" column="article_picture_value"/>
+		<result property="articleAttachmentName" column="article_attachment_name"/>
+		<result property="articleAttachmentValue" column="article_attachment_value"/>
+	</resultMap>
+	
+	<!-- 获取法律一级标题 -->
+	<select id="getLawFirstTitle" resultMap="lawFirstTitleList">
+		select id,first_title
+		from lz_law
+		<if test="key != null and key != ''">
+			where first_title like '%${key}%'
+		</if>
+		group by first_title
+	</select>
+	<resultMap type="Law" id="lawFirstTitleList">
+		<id property="id" column="id"/>
+		<result property="firstTitle" column="first_title"/>
+		<result property="secondTitle" column="second_title"/>
+		<result property="detail" column="detail"/>
+	</resultMap>
+	
+	<!-- 获取法律的二级目录 -->
+	<select id="getLawSecondTitle" resultMap="lawFirstTitleList">
+		select id,first_title,second_title
+		from lz_law
+		where first_title = #{titleName}
+	</select>
+	
+	<!-- 添加新闻 -->
+	<insert id="addNew" parameterType="News">
+		insert into lz_police_total(id,list_title,article_secondtitle,class,list_time,article_title,article_picture_name,
+		     article_picture_value,article_detail,article_attachment_name,article_attachment_value,subclass_type)
+		values(#{id},#{listTitle},#{articleSecondTitle},#{_class},#{listTime},#{articleTitle},#{articlePictureName},
+				#{articlePictureValue},#{articleDetail},#{articleAttachmentName},#{articleAttachmentValue},
+				#{subclassType})
+	</insert>
+	
+	<!-- 查询最大的newId -->
+	<select id="getLagestNewId" resultType="java.lang.String">
+		select id from lz_police_total order by id DESC limit 0,1
+	</select>
+	
+	<!-- 获取新的新闻信息 -->
+	<select id="syncNewData" resultMap="syncNewList">
+		select lz.id,lz.list_title,lz.article_secondtitle,lz.class,list_time,lz.article_title,lz.article_picture_name,
+		     lz.article_picture_value,lz.article_detail,lz.article_attachment_name,lz.article_attachment_value,subclass_type
+		from lz_police_total lz
+		where id > #{newId}
+		order by id asc
+		limit 0,10
+	</select>
+	
+	<!-- 获取法律的详情 -->
+	<select id="getLawInfo" resultMap="lawFirstTitleList">
+		select id,first_title,second_title,detail
+		from lz_law
+		where second_title = #{titleName}
+	</select>
+	
+	<!-- ====================opensns============================ -->
+	<select id="findAllMember" resultMap="allMemberIds">
+		select uid from ocenter_member
+	</select>
+	<resultMap id="allMemberIds" type="java.lang.Integer">
+		<id property="id" column="uid"/>
+	</resultMap>
+	
+	<!-- 添加关注 -->
+	<insert id="addFollow">
+		insert into ocenter_follow(follow_who,who_follow,create_time,alias,group_id)
+		values(#{follow},#{followWho},#{time},"",0)
+	</insert>
+	
+	<!-- ======================同步文件========================== -->
+	<!-- 查询需要更新的新闻信息 -->
+	<select id="getSyncNewList" resultMap="syncNewList">
+		select lz.id,lz.list_title,lz.article_secondtitle,lz.class,list_time,lz.article_title,lz.article_picture_name,
+		     lz.article_picture_value,lz.article_detail,lz.article_attachment_name,lz.article_attachment_value,subclass_type
+		from lz_police_total lz 
+		where lz.id > (select sync_new_id from lz_sync_record order by update_date DESC limit 0,1)
+		order by lz.id
+	</select>
+	<resultMap type="News" id="syncNewList">
+		<id property="id" column="id"/>
+		<result property="listTitle" column="list_title"/>
+		<result property="articleSecondTitle" column="article_secondtitle"/>
+		<result property="subclassType" column="subclass_type"/>
+		<result property="_class" column="class"/>
+		<result property="listTime" column="list_time"/>
+		<result property="articleTitle" column="article_title"/>
+		<result property="articlePictureName" column="article_picture_name"/>
+		<result property="articleDetail" column="article_detail"/>
+		<result property="articlePictureValue" column="article_picture_value"/>
+		<result property="articleAttachmentName" column="article_attachment_name"/>
+		<result property="articleAttachmentValue" column="article_attachment_value"/>
+	</resultMap>
+	
+	<!-- 查询所有的新闻 -->
+	<select id="getAllNews" resultMap="syncNewList">
+		select lz.id,lz.list_title,lz.article_secondtitle,lz.class,list_time,lz.article_title,lz.article_picture_name,
+		     lz.article_picture_value,lz.article_detail,lz.article_attachment_name,lz.article_attachment_value,subclass_type
+		from lz_police_total lz
+		where class = "站内公告"
+		order by lz.id desc
+	</select>
+	
+	<!-- 更新新闻的时间 -->
+	<update id="updateNew">
+		update lz_police_total set list_time = #{listTime} where id = #{id}
+	</update>
+	<!-- 添加同步文件记录 -->
+	<insert id="addSyncFileRecord">
+		insert into lz_sync_record(sync_new_id,update_date,is_success)
+		values(#{id},NOW(),#{i})
+	</insert>
+	
+	<!-- 查询数量 -->
+	<select id="getNewListCount" resultType="java.lang.Integer">
+		select count(1) from lz_police_total 
+		where class = #{name} or subclass_type = #{name}
+	</select>
+	
+	<!-- 查询要加入圈子的人的uid -->
+	<select id="getAcenterMemberIds" resultMap="ocenterMemberIds">
+		select id from ocenter_ucenter_member right join ocenter_temp on email like concat("%",id_card,"%")
+	</select>
+	<resultMap id="ocenterMemberIds" type="java.lang.String"/>
+	
+	<!-- ================================================app============================================= -->
+	<select id="queryPersonInfo" resultType="czrkData">
+		select getMarriageNameByCode(#{hyzk}) AS hyzk,
+		       getRegionNameByCode(#{hkszd}) AS hkszd,
+		       getRegionNameByCode(#{jgssx}) AS jgssx,
+		       getNationNameByCode(#{mz}) AS mz,
+		       getCultureNameByCode(#{whcd}) AS whcd
+	</select>
+		
+</mapper>

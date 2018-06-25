@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.telecomyt.dao.IUserDao">
+	
+	<!-- 查询app的版本号 -->
+	<select id="getAppVersionCode" resultType="AppVersion">
+		select id,version_code AS versionCode,version_name AS versionName,update_date AS updateDate from lz_app_setting order by update_date desc limit 0,1
+	</select>
+	
+	<!-- 新增app版本号 -->
+	<insert id="addAppVersion" useGeneratedKeys="true" keyColumn="id" >
+		insert into lz_app_setting(version_name,version_code,update_date)
+		values(#{versionName},#{versionCode},#{updateDate})
+	</insert>
+	
+	<!-- 更新用户的imei号 -->
+	<update id="updateUserImei">
+		update lz_user set imei = #{imei},update_date = #{updateDate}
+		where id_card = #{idCard}
+	</update>
+	
+	<select id="getUserImei" resultType="java.lang.String">
+		select imei from lz_user where id_card = #{idCard}
+	</select>
+	
+	<!-- 验证用户账号密码 -->
+	<select id="authUser" resultType="LzUser">
+		select id,id_card AS idCard,name,password AS pwd,update_date AS updateDate from lz_user where id_card = #{username} and password = #{pwd}
+	</select>
+	
+	<!-- 更改用户的密码 -->
+	<update id="updateUserPwd">
+		update lz_user set password = #{newPwd},update_date = NOW() where id_card = #{username} 
+	</update>
+	<!-- ==========================================sns============================================ -->
+	<!-- 获取所有需要更新的用户信息 -->
+	<select id="getAllSnsUsers" resultMap="snsUserList">
+		select m.id AS uid,t.id_card AS idCard,t.area from ocenter_ucenter_member m join ocenter_temp t on m.email = CONCAT(t.id_card,"@lzPolice.com")  
+	</select>
+	<resultMap type="UpdateSnsSignature" id="snsUserList"/>
+	
+	<!-- 更改sns用户的签名 -->
+	<update id="updateSnsUserSig">
+		update ocenter_member set signature = #{area} where uid = #{uid}
+	</update>
+	
+	<insert id="addAppInfo" useGeneratedKeys="true" keyColumn="id" parameterType="AppInfo">
+		<selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+	     select LAST_INSERT_ID() AS id
+	 	</selectKey>
+		insert into lz_app_info(app_package,app_name,app_id,app_click_count,update_date)
+		values(#{appPackage},#{appName},#{appId},1,#{updateDate})
+	</insert>
+</mapper>

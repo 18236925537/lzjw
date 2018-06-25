@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.telecomyt.dao.IAppDao">
+	
+	<!-- 获取app的信息 -->
+	<select id="getApp" resultType="AppInfo">
+		select id,app_package as appPackage,app_name as appName,app_code as appCode,
+			   app_corp_id as appCorpId,update_date as updateDate,app_id as appId,app_click_count as appClickCount
+	    from lz_app_info
+	    where app_package = #{appPackage}
+	</select>
+	
+	<!-- 更新应用的信息 -->
+	<update id="updateApp">
+		update lz_app_info set app_code = #{appCode},app_corp_id = #{appCorpId},update_date = #{date},app_click_count = #{appClickCount}
+		where id = #{id}
+	</update>
+	
+	<insert id="addAppInfo" useGeneratedKeys="true" keyColumn="id" >
+		insert into lz_app_info(app_package,app_name,app_code,app_corp_id,app_click_count,update_date)
+		values(#{appPackage},#{appName},#{appCode},#{appCorpId},1,#{date})
+	</insert>
+</mapper>

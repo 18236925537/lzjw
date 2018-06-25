@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"   
+"http://mybatis.org/dtd/mybatis-3-config.dtd">  
+<configuration>  
+	<settings>
+		<setting name="logImpl" value="STDOUT_LOGGING"/>
+	</settings>
+	
+	<!-- 配置别名 -->
+	<typeAliases>
+		<typeAlias type="com.telecomyt.entity.User" alias="User"/>
+		<typeAlias type="com.telecomyt.entity.SecondTitle" alias="SecondTitle"/>
+		<typeAlias type="com.telecomyt.entity.ThirdTitle" alias="ThirdTitle"/>
+		<typeAlias type="com.telecomyt.entity.Data" alias="Data"/>
+		<typeAlias type="com.telecomyt.entity.NewInfo" alias="NewInfo"/>
+		<typeAlias type="com.telecomyt.entity.Law" alias="Law"/>
+		<typeAlias type="com.telecomyt.entity.News" alias="News"/>
+		<typeAlias type="com.telecomyt.template.PersonInfoData" alias="czrkData"/>
+		<typeAlias type="com.telecomyt.template.AppVersion" alias="AppVersion"/>
+		<typeAlias type="com.telecomyt.template.UpdateSnsSignature" alias="UpdateSnsSignature"/>
+		<typeAlias type="com.telecomyt.entity.LzUser" alias="LzUser"/>
+		<typeAlias type="com.telecomyt.entity.AppInfo" alias="AppInfo"/>
+	</typeAliases>
+	
+	<mappers>
+		<mapper resource="com/telecomyt/dao/impl/LiuZhouMapper.xml"/>
+		<mapper resource="com/telecomyt/dao/impl/UserMapper.xml"/>
+		<mapper resource="com/telecomyt/dao/impl/AppMapper.xml"/>
+	</mappers>
+	
+</configuration> 
