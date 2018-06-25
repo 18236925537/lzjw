@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="dynamicDatasourceDemo"
+  id="myeclipse.1422513496672"
+  context-root="/dynamicDatasourceDemo"
+  j2ee-spec="5.0"
+  archive="dynamicDatasourceDemo.war">
+  <attributes>
+    <attribute name="webrootdir" value="/WebRoot" />
+  </attributes>
+</project-module>
+
