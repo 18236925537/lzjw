@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_ideaitems" default="compile.module.ideaitems">
+  <dirname property="module.ideaitems.basedir" file="${ant.file.module_ideaitems}"/>
+  
+  <property name="module.jdk.home.ideaitems" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.ideaitems" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.ideaitems" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.ideaitems" value="-encoding UTF-8 -source 1.7 -target 1.7 ${compiler.args}"/>
+  
+  <property name="ideaitems.output.dir" value="${module.ideaitems.basedir}/target/classes"/>
+  <property name="ideaitems.testoutput.dir" value="${module.ideaitems.basedir}/target/test-classes"/>
+  
+  <path id="ideaitems.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="ideaitems.module.production.classpath">
+    <path refid="${module.jdk.classpath.ideaitems}"/>
+  </path>
+  
+  <path id="ideaitems.runtime.production.module.classpath">
+    <pathelement location="${ideaitems.output.dir}"/>
+  </path>
+  
+  <path id="ideaitems.module.classpath">
+    <path refid="${module.jdk.classpath.ideaitems}"/>
+    <pathelement location="${ideaitems.output.dir}"/>
+    <path refid="library.maven:_junit:junit:4.11.classpath"/>
+    <path refid="library.maven:_org.hamcrest:hamcrest-core:1.3.classpath"/>
+  </path>
+  
+  <path id="ideaitems.runtime.module.classpath">
+    <pathelement location="${ideaitems.testoutput.dir}"/>
+    <pathelement location="${ideaitems.output.dir}"/>
+    <path refid="library.maven:_junit:junit:4.11.classpath"/>
+    <path refid="library.maven:_org.hamcrest:hamcrest-core:1.3.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.ideaitems">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.ideaitems">
+    <patternset refid="excluded.from.module.ideaitems"/>
+  </patternset>
+  
+  
+  <target name="compile.module.ideaitems" depends="compile.module.ideaitems.production,compile.module.ideaitems.tests" description="Compile module IdeaItems"/>
+  
+  <target name="compile.module.ideaitems.production" depends="register.custom.compilers" description="Compile module IdeaItems; production classes"/>
+  
+  <target name="compile.module.ideaitems.tests" depends="register.custom.compilers,compile.module.ideaitems.production" description="compile module IdeaItems; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.ideaitems" description="cleanup module">
+    <delete dir="${ideaitems.output.dir}"/>
+    <delete dir="${ideaitems.testoutput.dir}"/>
+  </target>
+</project>

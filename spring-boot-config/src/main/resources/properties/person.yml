@@ -1,0 +1,5 @@
+person:
+  name: lbj
+  age: 18
+  loves: {ball: football,ball1: basketball}
+  grades[0]: {gradeName: aaaa,gradeCode: 1111}
