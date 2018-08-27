@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.telecomyt.web.mapper.html.H5Mapper" >
+    
+    <sql id="BaseSql">
+        id,name,icon,description,create_date,update_date,order_num,url,status,client_id,version
+    </sql>
+    
+    <resultMap id="h5List" type="com.telecomyt.web.entity.H5Info">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="icon" column="icon"/>
+        <result property="description" column="description"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="url" column="url"/>
+        <result property="version" column="version"/>
+        <result property="clientId" column="client_id"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <!--添加h5应用信息-->
+    <insert id="addHtmlInfo" parameterType="com.telecomyt.web.entity.H5Info" useGeneratedKeys="true" keyColumn="id">
+      insert into tbl_html_info(client_id,icon,name,description,create_date,update_date,order_num,url,status,view_name,version)
+      values(#{clientId},#{icon},#{name},#{description},#{createDate},#{updateDate},#{orderNum},#{url},0,CONCAT("view_",#{clientId}),#{version})
+    </insert>
+
+    <!--添加h5应用记录信息-->
+    <insert id="addHtmlRecord" parameterType="com.telecomyt.web.entity.H5Info">
+        insert into tbl_html_record(client_id,create_date,description,version)
+        values(#{clientId},#{createDate},#{description},#{version})
+    </insert>
+
+    <!--添加应用机构权限-->
+    <insert id="addH5AuthOrga">
+      insert into tbl_html_auth_orga(client_id,orga_code,is_select)
+      values(#{clientId},#{orgaCode},#{isSelected})
+    </insert>
+
+    <!--添加应用人员权限-->
+    <insert id="addH5AuthUser">
+      insert into tbl_html_auth_user(client_id,id_card)
+      values(#{clientId},#{idCard})
+    </insert>
+
+    <!--创建应用视图-->
+    <select id="createH5View">
+         create or replace view ${viewName} as
+         select u.identity_card
+         from user u
+         where u.organization_code in (select orga_code from tbl_html_auth_orga ho where client_id = #{clientId})
+         or u.identity_card in (select id_card from tbl_html_auth_user where client_id = #{clientId})
+    </select>
+
+    <!--获取应用列表信息-->
+    <select id="getHtmlList" resultMap="h5List">
+        select <include refid="BaseSql"/>
+        from tbl_html_info
+        where status != 2
+        order by id asc
+    </select>
+
+    <!--查询应用基本信息-->
+    <select id="getH5Info" resultMap="h5List">
+        select <include refid="BaseSql"/>
+        from tbl_html_info
+        where id= #{id}
+    </select>
+
+    <!--获取应用的详细信息-->
+    <select id="getH5DetailInfo" resultMap="h5DetailInfo">
+        select <include refid="BaseSql"/>
+        from tbl_html_info
+        where id = #{id}
+    </select>
+    <resultMap id="h5DetailInfo" type="com.telecomyt.web.entity.H5DetailInfo">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="icon" column="icon"/>
+        <result property="description" column="description"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="url" column="url"/>
+        <result property="version" column="version"/>
+        <result property="clientId" column="client_id"/>
+        <result property="status" column="status"/>
+        <association property="orgas" select="getH5AuthOrgas" column="client_id"/>
+        <association property="users" select="getH5AuthUsers" column="client_id"/>
+    </resultMap>
+    <select id="getH5AuthOrgas" resultType="com.telecomyt.web.entity.Organization">
+        select code as orgaCode,name as orgaName,super_code as superCode
+        from organization
+        where code in (select orga_code from tbl_html_auth_orga where client_id = #{client_id} and is_select = 1)
+    </select>
+    <select id="getH5AuthUsers" resultType="com.telecomyt.web.entity.User">
+        select name,identity_card as identityCard,organization_code as orgaCode
+        from user
+        where identity_card in (select id_card from tbl_html_auth_user where client_id = #{client_id})
+    </select>
+
+    <!--根据应用的标识查询应用信息-->
+    <select id="getH5ByClientId" resultType="com.telecomyt.web.entity.H5Info">
+        select <include refid="BaseSql"/>
+        from tbl_html_info
+        where client_id = #{clientId}
+    </select>
+    
+    <!--清空应用的机构权限信息-->
+    <delete id="clearH5AuthOrga">
+        delete from tbl_html_auth_orga
+        where client_id = #{clientId}
+    </delete>
+    
+    <!--清空应用的人员权限信息-->
+    <delete id="clearH5AuthUser">
+        delete from tbl_html_auth_user
+        where client_id = #{clientId}
+    </delete>
+
+    <!--更改应用信息-->
+    <update id="editH5Info">
+        update tbl_html_info
+        <set>
+            <if test="url != null and url != ''">
+                url = #{url},
+            </if>
+            <if test="description != null and description != ''">
+                description = #{description},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="url != null and url != ''">
+                url = #{url},
+            </if>
+            <if test="icon != null and icon != ''">
+                icon = #{icon},
+            </if>
+            <if test="version != null and version != ''">
+                version = #{version},
+            </if>
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+            update_date = NOW()
+            <where>
+                id = #{id}
+            </where>
+        </set>
+    </update>
+
+    <!--获取所有正在使用的视图信息-->
+    <select id="getUsingH5Views" resultMap="ViewNames">
+        select view_name
+        from tbl_html_info
+        where status = 0
+    </select>
+    <resultMap id="ViewNames" type="java.lang.String"/>
+
+    <!--查询包含当前身份证号的视图信息-->
+    <select id="getUserFromView" resultType="java.lang.String">
+        select identity_card
+        from ${viewName}
+        where identity_card = #{idCard}
+    </select>
+
+    <!--根据视图名称查询h5应用的信息-->
+    <select id="getH5InfoByViewName" resultMap="h5List">
+        select <include refid="BaseSql"/>
+        from tbl_html_info
+        where view_name = #{viewName}
+    </select>
+</mapper>

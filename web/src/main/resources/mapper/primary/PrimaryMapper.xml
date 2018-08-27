@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.telecomyt.web.mapper.primary.IPrimaryMapper" >
+
+    <!--查询机构列表-->
+    <select id="queryOrgaList" resultMap="orgaList">
+      <if test="orgaCode == 1">
+        select code,name,super_code
+        from organization
+        where code = "110000000000"
+      </if>
+      <if test="orgaCode != 1">
+        select code,name,super_code
+        from organization
+        where super_code = #{orgaCode}
+      </if>
+    </select>
+    <resultMap id="orgaList" type="com.telecomyt.web.entity.Organization">
+        <result property="orgaCode" column="code"/>
+        <result property="orgaName" column="name"/>
+        <result property="superCode" column="super_code"/>
+    </resultMap>
+
+    <!--根据上级机构编码查询下级机构信息-->
+    <select id="getChildOrgaBySuperCode" resultMap="orgaList">
+        select code,name,super_code
+        from organization
+        where super_code = #{orgas}
+    </select>
+</mapper>
